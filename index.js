@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pme8g.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -27,6 +27,13 @@ const run = async () => {
     app.get("/parts", async (req, res) => {
       const parts = await partsCollection.find().toArray({});
       res.send(parts);
+    });
+
+    app.get("/parts/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const part = await partsCollection.findOne(query);
+      res.send(part);
     });
   } catch (error) {
     console.log(error);
