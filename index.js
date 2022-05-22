@@ -18,8 +18,16 @@ const client = new MongoClient(uri, {
 
 const run = async () => {
   try {
-    client.connect();
-    console.log("making run arrow function");
+    // collections
+
+    const partsCollection = client.db("Auto-Motive").collection("Parts");
+
+    await client.connect();
+
+    app.get("/parts", async (req, res) => {
+      const parts = await partsCollection.find().toArray({});
+      res.send(parts);
+    });
   } catch (error) {
     console.log(error);
   }
