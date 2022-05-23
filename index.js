@@ -21,11 +21,12 @@ const run = async () => {
     // collections
 
     const partsCollection = client.db("Auto-Motive").collection("Parts");
+    const ordersCollection = client.db("Auto-Motive").collection("Orders");
 
     await client.connect();
 
     app.get("/parts", async (req, res) => {
-      const parts = await partsCollection.find().toArray({});
+      const parts = await partsCollection.find().toArray();
       res.send(parts);
     });
 
@@ -47,6 +48,12 @@ const run = async () => {
         },
       };
       const result = await partsCollection.updateOne(query, updateDoc, options);
+      res.send(result);
+    });
+
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
   } catch (error) {
