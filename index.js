@@ -56,6 +56,10 @@ const run = async () => {
       const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
+    app.get("/order", async (req, res) => {
+      const orders = await ordersCollection.find().toArray();
+      res.send(orders);
+    });
   } catch (error) {
     console.log(error);
   }
