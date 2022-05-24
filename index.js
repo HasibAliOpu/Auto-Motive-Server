@@ -60,7 +60,9 @@ const run = async () => {
       res.send(result);
     });
     app.get("/order", async (req, res) => {
-      const orders = await ordersCollection.find().toArray();
+      const email = req.query.email;
+      console.log(email);
+      const orders = await ordersCollection.find({ email: email }).toArray();
       res.send(orders);
     });
     app.delete("/order/:id", async (req, res) => {
