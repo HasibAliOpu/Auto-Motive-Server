@@ -90,6 +90,10 @@ const run = async () => {
       const result = await profilesCollection.insertOne(profile);
       res.send(result);
     });
+    app.get("/myProfile", async (req, res) => {
+      const result = await profilesCollection.find().toArray();
+      res.send(result);
+    });
   } catch (error) {
     console.log(error);
   }
