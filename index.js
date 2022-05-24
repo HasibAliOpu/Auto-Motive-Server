@@ -23,9 +23,11 @@ const run = async () => {
     const partsCollection = client.db("Auto-Motive").collection("Parts");
     const ordersCollection = client.db("Auto-Motive").collection("Orders");
     const reviewsCollection = client.db("Auto-Motive").collection("reviews");
+    const profilesCollection = client.db("Auto-Motive").collection("profiles");
 
     await client.connect();
 
+    // all API for parts
     app.get("/parts", async (req, res) => {
       const parts = await partsCollection.find().toArray();
       res.send(parts);
@@ -52,7 +54,7 @@ const run = async () => {
       res.send(result);
     });
 
-    // POST and GET API for order
+    // all API for order
 
     app.post("/order", async (req, res) => {
       const order = req.body;
@@ -71,6 +73,7 @@ const run = async () => {
       res.send(result);
     });
 
+    // all API for review
     app.post("/review", async (req, res) => {
       const review = req.body;
       const result = await reviewsCollection.insertOne(review);
@@ -79,6 +82,13 @@ const run = async () => {
     app.get("/review", async (req, res) => {
       const reviews = (await reviewsCollection.find().toArray()).reverse();
       res.send(reviews);
+    });
+
+    // all API my profile
+    app.post("/myProfile", async (req, res) => {
+      const profile = req.body;
+      const result = await profilesCollection.insertOne(profile);
+      res.send(result);
     });
   } catch (error) {
     console.log(error);
