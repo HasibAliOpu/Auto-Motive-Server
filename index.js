@@ -63,6 +63,11 @@ const run = async () => {
       const orders = await ordersCollection.find().toArray();
       res.send(orders);
     });
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await ordersCollection.deleteOne({ _id: ObjectId(id) });
+      res.send(result);
+    });
 
     app.post("/review", async (req, res) => {
       const review = req.body;
