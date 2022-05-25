@@ -29,7 +29,7 @@ const run = async () => {
 
     // all API for parts
     app.get("/parts", async (req, res) => {
-      const parts = await partsCollection.find().toArray();
+      const parts = (await partsCollection.find().toArray()).reverse();
       res.send(parts);
     });
 
@@ -52,6 +52,12 @@ const run = async () => {
       };
       const result = await partsCollection.updateOne(query, updateDoc, options);
       res.send(result);
+    });
+
+    app.post("/parts", async (req, res) => {
+      const product = req.body;
+      await partsCollection.insertOne(product);
+      res.send({ success: true, message: "Product added" });
     });
 
     // all API for order
