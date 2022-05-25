@@ -63,7 +63,6 @@ const run = async () => {
     });
     app.get("/order", async (req, res) => {
       const email = req.query.email;
-      console.log(email);
       const orders = await ordersCollection.find({ email: email }).toArray();
       res.send(orders);
     });
@@ -93,6 +92,59 @@ const run = async () => {
     app.get("/myProfile", async (req, res) => {
       const result = await profilesCollection.find().toArray();
       res.send(result);
+    });
+
+    app.get("/myProfile/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await profilesCollection.findOne({ _id: ObjectId(id) });
+      res.send(result);
+    });
+
+    app.patch("/myProfile/:id", async (req, res) => {
+      const id = req.params.id;
+      const profile = req.body;
+      const newProfile = profile.profileInfo;
+      const name = newProfile.name;
+      const email = newProfile.email;
+      const education = newProfile.education;
+      const district = newProfile.district;
+      const city = newProfile.city;
+      const linkedin = newProfile.linkedin;
+      const github = newProfile.github;
+      const phone = newProfile.phone;
+
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          name: name,
+          email: email,
+          education: education,
+          district: district,
+          city: city,
+          linkedin: linkedin,
+          github: github,
+          phone: phone,
+        },
+      };
+      if (
+        !name ||
+        !email ||
+        !education ||
+        !district ||
+        !city ||
+        !linkedin ||
+        !github ||
+        !phone
+      ) {
+        return res.send({
+          success: false,
+          error: "Please provide all information",
+        });
+      }
+
+      const result = await profilesCollection.updateOne(filter, updatedDoc);
+
+      res.send({ success: true, message: "Profile Updated" });
     });
   } catch (error) {
     console.log(error);
