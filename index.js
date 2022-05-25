@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const app = express();
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -21,6 +22,7 @@ const run = async () => {
     // collections
 
     const partsCollection = client.db("Auto-Motive").collection("Parts");
+    const usersCollection = client.db("Auto-Motive").collection("users");
     const ordersCollection = client.db("Auto-Motive").collection("Orders");
     const reviewsCollection = client.db("Auto-Motive").collection("reviews");
     const profilesCollection = client.db("Auto-Motive").collection("profiles");
@@ -63,6 +65,7 @@ const run = async () => {
       const id = req.params.id;
       await partsCollection.deleteOne({ _id: ObjectId(id) });
     });
+
     // all API for order
 
     app.post("/order", async (req, res) => {
@@ -150,9 +153,27 @@ const run = async () => {
         });
       }
 
-      const result = await profilesCollection.updateOne(filter, updatedDoc);
+      await profilesCollection.updateOne(filter, updatedDoc);
 
       res.send({ success: true, message: "Profile Updated" });
+    });
+
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        { email: email },
+        updateDoc,
+        options
+      );
+      const token = jwt.sign({ email: email }, process.env.SECRET_TOKEN_KEY, {
+        expiresIn: "7d",
+      });
+      res.send({ result, token });
     });
   } catch (error) {
     console.log(error);
