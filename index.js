@@ -59,7 +59,10 @@ const run = async () => {
       await partsCollection.insertOne(product);
       res.send({ success: true, message: "Product added" });
     });
-
+    app.delete("/parts/:id", async (req, res) => {
+      const id = req.params.id;
+      await partsCollection.deleteOne({ _id: ObjectId(id) });
+    });
     // all API for order
 
     app.post("/order", async (req, res) => {
@@ -74,8 +77,7 @@ const run = async () => {
     });
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
-      const result = await ordersCollection.deleteOne({ _id: ObjectId(id) });
-      res.send(result);
+      await ordersCollection.deleteOne({ _id: ObjectId(id) });
     });
 
     // all API for review
