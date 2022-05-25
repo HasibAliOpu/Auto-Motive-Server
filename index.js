@@ -178,6 +178,25 @@ const run = async () => {
       res.send({ success: true, message: "Profile Updated" });
     });
 
+    // user api
+    app.get("/user", verifyJWT, async (req, res) => {
+      const user = await usersCollection.find().toArray();
+      res.send(user);
+    });
+
+    app.put("/user/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const updateDoc = {
+        $set: { role: "Admin" },
+      };
+      const result = await usersCollection.updateOne(
+        { email: email },
+        updateDoc
+      );
+
+      res.send(result);
+    });
+
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
