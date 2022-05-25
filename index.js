@@ -9,6 +9,21 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "UnAuthorized Access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.SECRET_TOKEN_KEY, function (err, decoded) {
+    if (err) {
+      res.status(403).send({ message: "Forbidden Access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pme8g.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -35,7 +50,7 @@ const run = async () => {
       res.send(parts);
     });
 
-    app.get("/parts/:id", async (req, res) => {
+    app.get("/parts/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const part = await partsCollection.findOne(query);
@@ -73,10 +88,15 @@ const run = async () => {
       const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
-    app.get("/order", async (req, res) => {
+    app.get("/order", verifyJWT, async (req, res) => {
       const email = req.query.email;
-      const orders = await ordersCollection.find({ email: email }).toArray();
-      res.send(orders);
+      const decodedEmail = req.decoded?.email;
+      if (email === decodedEmail) {
+        const orders = await ordersCollection.find({ email: email }).toArray();
+        res.send(orders);
+      } else {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
     });
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
