@@ -202,12 +202,14 @@ const run = async () => {
       const result = await profilesCollection.insertOne(profile);
       res.send(result);
     });
-    app.get("/myProfile", async (req, res) => {
-      const result = await profilesCollection.find().toArray();
+    app.get("/myProfile/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      const result = await profilesCollection.find({ email: email }).toArray();
       res.send(result);
     });
 
-    app.get("/myProfile/:id", async (req, res) => {
+    app.get("/myProfile/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const result = await profilesCollection.findOne({ _id: ObjectId(id) });
       res.send(result);
