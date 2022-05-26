@@ -44,6 +44,21 @@ const run = async () => {
 
     await client.connect();
 
+    // verify admin
+
+    const verifyAdmin = async (req, res, next) => {
+      const requester = req?.decoded?.email;
+      const filter = { email: requester };
+
+      const requestAccount = await usersCollection.findOne(filter);
+
+      if (requestAccount.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "Forbidden Access" });
+      }
+    };
+
     // all API for parts
     app.get("/parts", async (req, res) => {
       const parts = (await partsCollection.find().toArray()).reverse();
@@ -184,15 +199,14 @@ const run = async () => {
       res.send(user);
     });
 
-    app.put("/user/admin/:email", async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
+      const filter = { email: email };
+
       const updateDoc = {
-        $set: { role: "Admin" },
+        $set: { role: "admin" },
       };
-      const result = await usersCollection.updateOne(
-        { email: email },
-        updateDoc
-      );
+      const result = await usersCollection.updateOne(filter, updateDoc);
 
       res.send(result);
     });
