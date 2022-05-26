@@ -24,6 +24,8 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pme8g.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -41,6 +43,7 @@ const run = async () => {
     const ordersCollection = client.db("Auto-Motive").collection("Orders");
     const reviewsCollection = client.db("Auto-Motive").collection("reviews");
     const profilesCollection = client.db("Auto-Motive").collection("profiles");
+    const paymentsCollection = client.db("Auto-Motive").collection("payments");
 
     await client.connect();
 
@@ -103,6 +106,43 @@ const run = async () => {
       const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const order = await ordersCollection.findOne({ _id: ObjectId(id) });
+
+      res.send(order);
+    });
+
+    app.patch("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const transactionId = payment.payment.transactionId;
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: transactionId,
+        },
+      };
+      await paymentsCollection.insertOne(payment);
+      await ordersCollection.updateOne(filter, updatedDoc);
+      res.send(updatedDoc);
+    });
+
+    // POST API for payment gateway
+
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const service = req.body;
+      const price = service.price;
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
     app.get("/order", verifyJWT, async (req, res) => {
       const email = req.query.email;
       const decodedEmail = req.decoded?.email;
