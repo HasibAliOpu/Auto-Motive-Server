@@ -106,11 +106,37 @@ const run = async () => {
       const result = await ordersCollection.insertOne(order);
       res.send(result);
     });
-    app.get("/order/:id", async (req, res) => {
+
+    app.get("/allOrder", verifyJWT, async (req, res) => {
+      const allOrder = await ordersCollection.find({}).toArray();
+      res.send(allOrder);
+    });
+
+    app.get("/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const order = await ordersCollection.findOne({ _id: ObjectId(id) });
 
       res.send(order);
+    });
+
+    app.put("/order/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = { _id: ObjectId(id) };
+      const newStatus = req.body.pending;
+
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          status: newStatus,
+        },
+      };
+      const result = await ordersCollection.updateOne(
+        query,
+        updateDoc,
+        options
+      );
+      res.send(result);
     });
 
     app.patch("/order/:id", verifyJWT, async (req, res) => {
@@ -121,6 +147,7 @@ const run = async () => {
       const updatedDoc = {
         $set: {
           paid: true,
+          status: "pending",
           transactionId: transactionId,
         },
       };
