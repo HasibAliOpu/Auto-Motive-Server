@@ -202,16 +202,9 @@ const run = async () => {
       const result = await profilesCollection.insertOne(profile);
       res.send(result);
     });
-    app.get("/myProfile/:email", verifyJWT, async (req, res) => {
+    app.get("/myProfile/:email", async (req, res) => {
       const email = req.params.email;
-
       const result = await profilesCollection.find({ email: email }).toArray();
-      res.send(result);
-    });
-
-    app.get("/myProfile/:id", verifyJWT, async (req, res) => {
-      const id = req.params.id;
-      const result = await profilesCollection.findOne({ _id: ObjectId(id) });
       res.send(result);
     });
 
@@ -222,6 +215,7 @@ const run = async () => {
       const name = newProfile.name;
       const email = newProfile.email;
       const education = newProfile.education;
+      const image = newProfile.image;
       const district = newProfile.district;
       const city = newProfile.city;
       const linkedin = newProfile.linkedin;
@@ -234,6 +228,7 @@ const run = async () => {
           name: name,
           email: email,
           education: education,
+          image: image,
           district: district,
           city: city,
           linkedin: linkedin,
